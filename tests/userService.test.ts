@@ -30,7 +30,7 @@ class UserRepositoryMock implements UserRepository {
     }
 
     delete(user: User): void {
-        this.users = this.users.filter(u => u.key === user.key)
+        this.users = this.users.filter(u => u.key !== user.key)
     }
 
     all(): User[] {
@@ -81,5 +81,29 @@ describe('Test user registration', () => {
         expect(() => {
             service.register(new CreateUserDTO("test1", startPeriodDate, endPeriodDate))
         }).toThrow(UserSubscriptionHasExpiredError)
+    })
+})
+
+describe('Test delete user', () => {
+    const db = new UserRepositoryMock()
+    const service = new UserService(db)
+    const startPeriodDate = new Date((new Date()).toUTCString())
+    const endPeriodDate = new Date((new Date()).toUTCString())
+    endPeriodDate.setDate(endPeriodDate.getDate() + 1)
+
+    const newUser = new CreateUserDTO("test1", startPeriodDate, endPeriodDate)
+    const user = service.register(newUser)
+
+    test('Can not delete non existent user', () => {
+        expect(() => {
+            service.delete(user.key+"blabla")
+        }).toThrow(UserNotFoundError)
+    })
+
+    test('Delete user without errors', () => {
+        service.delete(user.key)
+        expect(() => {
+            db.getByKey(user.key)
+        }).toThrow(UserNotFoundError)
     })
 })

@@ -29,4 +29,8 @@ export class UserService {
 
         return user
     }
+
+    delete(key: string): void {
+        this.repo.delete(this.repo.getByKey(key))
+    }
 }
