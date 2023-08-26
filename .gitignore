@@ -141,4 +141,11 @@ dist
 # SvelteKit build / generate output
 .svelte-kit
 
+# My
+*.js
+*.js.map
+.vscode
+.env
+!jest.config.js
+
 # End of https://www.toptal.com/developers/gitignore/api/node
