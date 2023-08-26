@@ -1,5 +1,6 @@
 import { UserRepository } from '../../domain/repositories'
 import { User } from '../../domain/entities'
+import { UserSubscriptionHasExpiredError } from '../../domain/errors'
 import { CreateUserDTO } from './../dto'
 import { createHash } from 'crypto'
 
@@ -11,6 +12,14 @@ export class UserService {
     }
 
     register(data: CreateUserDTO): User {
+        if (data.startPreiodDate >= data.endPreiodDate) {
+            throw new UserSubscriptionHasExpiredError()
+        }
+
+        if (new Date((new Date()).toUTCString()) > data.endPreiodDate) {
+            throw new UserSubscriptionHasExpiredError()
+        }
+
         const key = createHash('sha384')
             .update(data.username + new Date(), 'utf-8')
             .digest('hex')

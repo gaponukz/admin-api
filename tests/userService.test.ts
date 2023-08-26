@@ -1,5 +1,5 @@
 import { User } from '../src/domain/entities'
-import { UserNotFoundError } from '../src/domain/errors'
+import { UserNotFoundError, UserSubscriptionHasExpiredError } from '../src/domain/errors'
 import { UserRepository } from '../src/domain/repositories'
 import { CreateUserDTO } from '../src/application/dto'
 import { UserService } from '../src/application/usecases/userService'
@@ -38,12 +38,16 @@ class UserRepositoryMock implements UserRepository {
     }
 }
 
-describe('Test user service', () => {
+describe('Test user registration', () => {
     const db = new UserRepositoryMock()
     const service = new UserService(db)
 
     test('Create correct user without errors', () => {
-        const newUser = new CreateUserDTO("test1", new Date(), new Date())
+        const startPeriodDate = new Date((new Date()).toUTCString())
+        const endPeriodDate = new Date((new Date()).toUTCString())
+        endPeriodDate.setDate(endPeriodDate.getDate() + 1)
+
+        const newUser = new CreateUserDTO("test1", startPeriodDate, endPeriodDate)
         const user = service.register(newUser)
 
         expect(user.username).toBe(newUser.username)
@@ -56,5 +60,26 @@ describe('Test user service', () => {
 
         const userFromDb = db.getByKey(user.key)
         expect(user.username).toBe(userFromDb.username)
+    })
+
+    test('We should not start >= end', () => {
+        const startPeriodDate = new Date((new Date()).toUTCString())
+        const endPeriodDate = new Date((new Date()).toUTCString())
+        startPeriodDate.setDate(startPeriodDate.getDate() + 1)
+
+        expect(() => {
+            service.register(new CreateUserDTO("test1", startPeriodDate, endPeriodDate))
+        }).toThrow(UserSubscriptionHasExpiredError)
+    })
+
+    test('We should not register expired keys', () => {
+        const startPeriodDate = new Date((new Date()).toUTCString())
+        const endPeriodDate = new Date((new Date()).toUTCString())
+        startPeriodDate.setDate(startPeriodDate.getDate() - 1)
+        endPeriodDate.setDate(endPeriodDate.getDate() - 2)
+
+        expect(() => {
+            service.register(new CreateUserDTO("test1", startPeriodDate, endPeriodDate))
+        }).toThrow(UserSubscriptionHasExpiredError)
     })
 })
