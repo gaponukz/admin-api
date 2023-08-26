@@ -1,13 +1,7 @@
 /* eslint-env node */
 module.exports = {
-    extends: [
-      'eslint:recommended',
-      'plugin:@typescript-eslint/recommended',
-      './node_modules/gts/.eslintrc.json',
-    ],
+    extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended'],
     parser: '@typescript-eslint/parser',
     plugins: ['@typescript-eslint'],
-    rules: {},
     root: true,
-  };
-  
+};
