@@ -15,9 +15,9 @@
     "clean": "gts clean",
     "compile": "tsc",
     "fix": "gts fix",
-    "prepare": "npm.cmd run compile",
-    "pretest": "npm.cmd run compile",
-    "posttest": "npm.cmd run lint"
+    "prepare": "cmd run compile",
+    "pretest": "cmd run compile",
+    "posttest": "cmd run lint"
   },
   "devDependencies": {
     "gts": "^5.0.1",
