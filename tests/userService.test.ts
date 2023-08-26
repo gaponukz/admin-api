@@ -1,8 +1,9 @@
 import { User } from '../src/domain/entities'
 import { UserNotFoundError, UserSubscriptionHasExpiredError } from '../src/domain/errors'
 import { UserRepository } from '../src/domain/repositories'
-import { CreateUserDTO } from '../src/application/dto'
+import { CreateUserDTO, UpdateUserDTO } from '../src/application/dto'
 import { UserService } from '../src/application/usecases/userService'
+import { exitCode } from 'process'
 
 class UserRepositoryMock implements UserRepository {
     private users: User[]
@@ -25,7 +26,7 @@ class UserRepositoryMock implements UserRepository {
     }
 
     update(user: User): void {
-        this.users = this.users.filter(u => u.key === user.key)
+        this.users = this.users.filter(u => u.key !== user.key)
         this.users.push(user)
     }
 
@@ -105,5 +106,42 @@ describe('Test delete user', () => {
         expect(() => {
             db.getByKey(user.key)
         }).toThrow(UserNotFoundError)
+    })
+})
+
+
+describe('Test update user info', () => {
+    const db = new UserRepositoryMock()
+    const service = new UserService(db)
+    const startPeriodDate = new Date((new Date()).toUTCString())
+    const endPeriodDate = new Date((new Date()).toUTCString())
+    endPeriodDate.setDate(endPeriodDate.getDate() + 1)
+
+    const newUser = new CreateUserDTO("test1", startPeriodDate, endPeriodDate)
+    const user = service.register(newUser)
+
+    test('Can not update non existent user', () => {
+        expect(() => {
+            service.update(new UpdateUserDTO(user.key+"blabla"))
+        }).toThrow(UserNotFoundError)
+    })
+
+    test('Correctly update user', () => {
+        service.update({key: user.key, username: "new_username"})
+        
+        let newUser = db.getByKey(user.key)
+        expect(newUser.username).toBe("new_username")
+        expect(newUser.endPeriodDate).toBe(user.endPeriodDate)
+        expect(newUser.startPeriodDate).toBe(user.startPeriodDate)
+        expect(newUser.isKeyActive).toBe(user.isKeyActive)
+        expect(newUser.isPro).toBe(user.isPro)
+
+        service.update({key: user.key, isKeyActive: false})
+        newUser = db.getByKey(user.key)
+        expect(newUser.isKeyActive).toBe(false)
+
+        service.update({key: user.key, isPro: true})
+        newUser = db.getByKey(user.key)
+        expect(newUser.isPro).toBe(true)
     })
 })
