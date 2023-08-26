@@ -1,5 +1,5 @@
 {
-  "name": "",
+  "name": "admin",
   "version": "0.0.0",
   "description": "",
   "main": "build/src/index.js",
@@ -15,9 +15,9 @@
     "clean": "gts clean",
     "compile": "tsc",
     "fix": "gts fix",
-    "prepare": "npm.cmd run compile",
-    "pretest": "npm.cmd run compile",
-    "posttest": "npm.cmd run lint"
+    "prepare": "npm run compile",
+    "pretest": "npm run compile",
+    "posttest": "npm run lint"
   },
   "devDependencies": {
     "gts": "^5.0.1",
