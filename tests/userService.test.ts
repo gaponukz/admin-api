@@ -3,7 +3,6 @@ import { UserNotFoundError, UserSubscriptionHasExpiredError } from '../src/domai
 import { UserRepository } from '../src/domain/repositories'
 import { CreateUserDTO, UpdateUserDTO } from '../src/application/dto'
 import { UserService } from '../src/application/usecases/userService'
-import { exitCode } from 'process'
 
 class UserRepositoryMock implements UserRepository {
     private users: User[]
@@ -144,4 +143,20 @@ describe('Test update user info', () => {
         newUser = db.getByKey(user.key)
         expect(newUser.isPro).toBe(true)
     })
+})
+
+describe('Test register client action', () => {
+    const db = new UserRepositoryMock()
+    const service = new UserService(db)
+    const startPeriodDate = new Date((new Date()).toUTCString())
+    const endPeriodDate = new Date((new Date()).toUTCString())
+    endPeriodDate.setDate(endPeriodDate.getDate() + 1)
+
+    const newUser = new CreateUserDTO("test1", startPeriodDate, endPeriodDate)
+    const user = service.register(newUser)
+    db.update(user)
+
+    test('Detect expired key', () => {})
+
+    test('Detect same uuid', () => {})
 })

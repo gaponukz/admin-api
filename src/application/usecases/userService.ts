@@ -1,7 +1,7 @@
-import { UserRepository } from '../../domain/repositories'
 import { User } from '../../domain/entities'
-import { UserSubscriptionHasExpiredError } from '../../domain/errors'
 import { CreateUserDTO, UpdateUserDTO } from './../dto'
+import { UserRepository } from '../../domain/repositories'
+import { UserSubscriptionHasExpiredError } from '../../domain/errors'
 import { createHash } from 'crypto'
 
 export class UserService {
@@ -43,8 +43,40 @@ export class UserService {
     
         this.repo.update(updatedUser);
     }
-    
+
     delete(key: string): void {
         this.repo.delete(this.repo.getByKey(key))
+    }
+
+    registerClientAction(key: string, uuid: string): User {
+        // export async function registerClientAction(request: Request): Promise<UserEntity | undefined> {
+        //     const result = await getUserFromRequest(request)
+        //     if (!result) return
+        
+        //     const { user, uuid } = result
+        
+        //     if (user.isKeyActive) {
+        //         let howMuchLeft = user.endPeriodDate.getTime() - user.startPeriodDate.getTime()
+        //         howMuchLeft /= (60 * 60 * 1000)
+        
+        //         user.startPeriodDate = getUTCDate()
+        //         user.endPeriodDate = afterHours(howMuchLeft)
+        
+        //         let sameUuidUsers = await getSameUuidUsers(request.query.uuid as string)
+        //         sameUuidUsers =  sameUuidUsers.filter(_user => _user.key != user.key)
+        
+        //         await userDB.update(user, {
+        //             startPeriodDate: user.startPeriodDate,
+        //             endPeriodDate: user.endPeriodDate,
+        //             isKeyActive: true,
+        //             uuid: uuid,
+        //             impersonates: sameUuidUsers[0]
+        //         })
+        
+        //     }
+        
+        //     return user
+        // }
+        return this.repo.getByKey(key);
     }
 }
