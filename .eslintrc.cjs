@@ -1,7 +1,16 @@
-/* eslint-env node */
 module.exports = {
     extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended'],
     parser: '@typescript-eslint/parser',
     plugins: ['@typescript-eslint'],
-    root: true,
-};
+    env: {
+      node: true,
+    },
+    globals: {
+      exports: 'readonly',
+    },
+    rules: {
+      '@typescript-eslint/no-var-requires': 'off',
+      // Add any other rules or overrides as needed
+    },
+  };
+  
