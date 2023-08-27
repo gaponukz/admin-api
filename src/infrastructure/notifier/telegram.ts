@@ -1,7 +1,7 @@
 import { Message } from './../../domain/entities'
 import { MessageNotifier } from '../../application/usecases/messageService'
 
-class TelegramNotifier implements MessageNotifier {
+export class TelegramNotifier implements MessageNotifier {
     private telegramBotToken: string
     private ownerID: string
 
