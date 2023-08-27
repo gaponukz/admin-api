@@ -5,7 +5,6 @@ import {v4 as uuidv4} from 'uuid'
 
 export interface IPostService {
     create(data: CreatePostDTO): Post
-    byID(id: string): Post
     update(data: UpdatePostDTO): void
     delete(id: string): void
     all(): Post[]

@@ -84,4 +84,8 @@ export class UserHandler {
             }
         }
     }
+
+    showAll (request: Request, response: Response) {
+        response.send(this.service.all())
+    }
 }

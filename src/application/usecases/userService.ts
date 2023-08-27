@@ -9,6 +9,7 @@ export interface IUserService {
     update(data: UpdateUserDTO): void
     delete(key: string): void
     registerClientAction(key: string, uuid: string): User
+    all(): User[]
 }
 
 export class UserService implements IUserService {
@@ -86,6 +87,10 @@ export class UserService implements IUserService {
         }
         
         return user
+    }
+
+    all(): User[] {
+        return this.repo.all()
     }
 
     private getSameUuidUser(username: string, uuid: string): string | undefined {
