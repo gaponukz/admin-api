@@ -40,3 +40,29 @@ export class CreateMessageDTO {
         this.message = message
     }
 }
+
+export class CreatePostDTO {
+    title: string
+    description: string
+    image: string
+
+    constructor(title: string, description: string, image: string) {
+        this.title = title
+        this.description = description
+        this.image = image
+    }
+}
+
+export class UpdatePostDTO {
+    id: string
+    title: string
+    description: string
+    image: string
+
+    constructor(id: string, title: string, description: string, image: string) {
+        this.id = id
+        this.title = title
+        this.description = description
+        this.image = image
+    }
+}

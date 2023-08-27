@@ -11,7 +11,8 @@ interface UserRepository {
 interface PostRepository {
     create(post: Post): void
     update(post: Post): void
-    delete(post: Post): void
+    delete(id: string): void
+    getByID(id: string): Post
     all(): Post[]
 }
 

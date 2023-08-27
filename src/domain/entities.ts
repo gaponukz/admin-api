@@ -21,16 +21,18 @@ export class User {
 }
 
 export class Post {
-    id: number
+    id: string
     title: string
     description: string
     image: string
+    date: Date
 
-    constructor(id: number, title: string, description: string, image: string) {
+    constructor(id: string, title: string, description: string, image: string, date: Date) {
         this.id = id
         this.title = title
         this.description = description
         this.image = image
+        this.date = date
     }
 }
 
