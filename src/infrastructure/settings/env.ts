@@ -1,3 +1,5 @@
+import * as dotenv from "dotenv"
+
 class Settings {
     telegramBotToken: string
     ownerID: string
@@ -8,7 +10,12 @@ class Settings {
     }
 }
 
-class EnvSettingsExporter {
+export class EnvSettingsExporter {
+    constructor(loadDotEnv: boolean = false) {
+        if (loadDotEnv) {
+            dotenv.config()
+        }
+    }
     load(): Settings {
         return new Settings(
             process.env.telegramBotToken as string,
