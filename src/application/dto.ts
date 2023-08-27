@@ -28,3 +28,15 @@ export class UpdateUserDTO {
         this.isPro = isPro
     }
 }
+
+export class CreateMessageDTO {
+    subject: string
+    gmail: string
+    message: string
+
+    constructor(subject: string, gmail: string, message: string) {
+        this.subject = subject
+        this.gmail = gmail
+        this.message = message
+    }
+}

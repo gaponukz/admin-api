@@ -35,14 +35,12 @@ export class Post {
 }
 
 export class Message {
-    id: number
     subject: string
     gmail: string
     message: string
     date: Date
 
-    constructor(id: number, subject: string, gmail: string, message: string, date: Date) {
-        this.id = id
+    constructor(subject: string, gmail: string, message: string, date: Date) {
         this.subject = subject
         this.gmail = gmail
         this.message = message
