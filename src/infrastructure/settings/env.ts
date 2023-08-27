@@ -11,7 +11,7 @@ class Settings {
 }
 
 export class EnvSettingsExporter {
-    constructor(loadDotEnv: boolean = false) {
+    constructor(loadDotEnv = false) {
         if (loadDotEnv) {
             dotenv.config()
         }
