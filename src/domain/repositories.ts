@@ -17,7 +17,6 @@ interface PostRepository {
 
 interface MessageRepository {
     create(message: Message): void
-    delete(message: Message): void
     all(): Message[]
 }
 
