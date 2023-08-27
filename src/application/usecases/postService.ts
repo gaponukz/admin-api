@@ -3,7 +3,14 @@ import { CreatePostDTO, UpdatePostDTO } from '../dto'
 import { PostRepository } from '../../domain/repositories'
 import {v4 as uuidv4} from 'uuid'
 
-export class PostService {
+export interface IPostService {
+    create(data: CreatePostDTO): Post
+    update(data: UpdatePostDTO): void
+    delete(id: string): void
+    all(): Post[]
+}
+
+export class PostService implements IPostService {
     private repo: PostRepository
 
     constructor(repo: PostRepository) {

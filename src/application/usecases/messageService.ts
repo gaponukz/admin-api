@@ -6,7 +6,12 @@ export interface MessageNotifier {
     send(message: Message): void
 }
 
-export class MessageService {
+export interface IMessageService {
+    create(data: CreateMessageDTO): void
+    all(): Message[]
+}
+
+export class MessageService implements IMessageService {
     private repo: MessageRepository
     private notifier: MessageNotifier
 
