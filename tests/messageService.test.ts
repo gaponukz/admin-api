@@ -48,7 +48,7 @@ describe('Test message sending', () => {
         const expectedMessage = new CreateMessageDTO("sub", "test@gmail.com", "hi")
         service.create(expectedMessage)
         const message = notifier.getLastMessage()
-        const dbMessage = db.all().find(m => m.gmail === "test@gmail.com")
+        const dbMessage = service.all().find(m => m.gmail === "test@gmail.com")
         
         expect(dbMessage).not.toBe(undefined)
         expect(expectedMessage.gmail).toBe(message.gmail)
