@@ -4,7 +4,14 @@ import { UserRepository } from '../../domain/repositories'
 import { UserSubscriptionHasExpiredError, UserImpersonatesError } from '../../domain/errors'
 import { createHash } from 'crypto'
 
-export class UserService {
+export interface IUserService {
+    register(data: CreateUserDTO): User
+    update(data: UpdateUserDTO): void
+    delete(key: string): void
+    registerClientAction(key: string, uuid: string): User
+}
+
+export class UserService implements IUserService {
     private repo: UserRepository
 
     constructor(repo: UserRepository) {
