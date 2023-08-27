@@ -1,5 +1,5 @@
 import { User } from '../src/domain/entities'
-import { UserNotFoundError, UserSubscriptionHasExpiredError } from '../src/domain/errors'
+import { UserNotFoundError, UserSubscriptionHasExpiredError, UserImpersonatesError } from '../src/domain/errors'
 import { UserRepository } from '../src/domain/repositories'
 import { CreateUserDTO, UpdateUserDTO } from '../src/application/dto'
 import { UserService } from '../src/application/usecases/userService'
@@ -154,9 +154,64 @@ describe('Test register client action', () => {
 
     const newUser = new CreateUserDTO("test1", startPeriodDate, endPeriodDate)
     const user = service.register(newUser)
-    db.update(user)
 
-    test('Detect expired key', () => {})
+    test('Detect expired key', () => {
+        user.startPeriodDate = new Date((new Date()).toUTCString())
+        user.endPeriodDate = new Date((new Date()).toUTCString())
+        user.startPeriodDate.setDate(user.startPeriodDate.getDate() - 2)
+        user.endPeriodDate.setDate(user.endPeriodDate.getDate() - 1)
+        db.update(user)
 
-    test('Detect same uuid', () => {})
+        expect(() => {
+            service.registerClientAction(user.key, "123")
+        }).toThrow(UserSubscriptionHasExpiredError)
+    })
+
+    test('Detect same uuid', () => {
+        user.startPeriodDate.setDate(user.startPeriodDate.getDate() + 1)
+        user.endPeriodDate.setDate(user.endPeriodDate.getDate() + 2)
+        db.update(user)
+        db.create(new User("sus", "qwe", new Date(), new Date(), true, false, "123", undefined))
+
+        expect(() => {
+            service.registerClientAction(user.key, "123")
+        }).toThrow(UserImpersonatesError)
+    })
+
+    test('When key was not active', () => {
+        const db = new UserRepositoryMock()
+        const service = new UserService(db)
+        const startPeriodDate = new Date((new Date()).toUTCString())
+        const endPeriodDate = new Date((new Date()).toUTCString())
+        endPeriodDate.setDate(endPeriodDate.getDate() + 1)
+
+        const expectedUser = service.register(new CreateUserDTO("test1", startPeriodDate, endPeriodDate))
+        const user = service.registerClientAction(expectedUser.key, "123")
+
+        expect(user.isKeyActive).toBe(true)
+        expect(user.uuid).toBe("123")
+        expect(user.impersonates).toBe(undefined)
+
+        expect(user.startPeriodDate < new Date((new Date()).toUTCString())).toBeFalsy()
+        expect(user.startPeriodDate.getTime() - user.endPeriodDate.getTime()).toBe(expectedUser.startPeriodDate.getTime() - user.endPeriodDate.getTime())
+    })
+
+    test('When key was already active', () => {
+        const db = new UserRepositoryMock()
+        const service = new UserService(db)
+        const startPeriodDate = new Date((new Date()).toUTCString())
+        const endPeriodDate = new Date((new Date()).toUTCString())
+        endPeriodDate.setDate(endPeriodDate.getDate() + 1)
+
+        const expectedUser = service.register(new CreateUserDTO("test1", startPeriodDate, endPeriodDate))
+        expectedUser.isKeyActive = true
+        db.update(expectedUser)
+
+        const user = service.registerClientAction(expectedUser.key, "123")
+        expect(user.isKeyActive).toBe(true)
+        expect(user.uuid).toBe("123")
+
+        expect(user.startPeriodDate.getTime()).toBe(expectedUser.startPeriodDate.getTime())
+        expect(user.endPeriodDate.getTime()).toBe(expectedUser.endPeriodDate.getTime())
+    })
 })

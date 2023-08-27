@@ -5,15 +5,17 @@ export class User {
     endPeriodDate: Date
     isKeyActive: boolean
     isPro: boolean
+    uuid: string | undefined
     impersonates: string | undefined
 
-    constructor (username: string, key: string, startPeriod: Date, endPeriod: Date, isKeyActive: boolean, isPro: boolean, impersonates: string | undefined) {
+    constructor (username: string, key: string, startPeriod: Date, endPeriod: Date, isKeyActive: boolean, isPro: boolean, uuid: string | undefined, impersonates: string | undefined) {
         this.username = username
         this.key = key
         this.isPro = isPro
         this.startPeriodDate = startPeriod
         this.endPeriodDate = endPeriod
         this.isKeyActive = isKeyActive
+        this.uuid = uuid
         this.impersonates = impersonates
     }
 }

@@ -1,7 +1,7 @@
 import { User } from '../../domain/entities'
 import { CreateUserDTO, UpdateUserDTO } from './../dto'
 import { UserRepository } from '../../domain/repositories'
-import { UserSubscriptionHasExpiredError } from '../../domain/errors'
+import { UserSubscriptionHasExpiredError, UserImpersonatesError } from '../../domain/errors'
 import { createHash } from 'crypto'
 
 export class UserService {
@@ -24,7 +24,7 @@ export class UserService {
             .update(data.username + new Date(), 'utf-8')
             .digest('hex')
         
-        const user = new User(data.username, key, data.startPreiodDate, data.endPreiodDate, true, false, undefined)
+        const user = new User(data.username, key, data.startPreiodDate, data.endPreiodDate, true, false, undefined, undefined)
         this.repo.create(user)
 
         return user
@@ -49,34 +49,40 @@ export class UserService {
     }
 
     registerClientAction(key: string, uuid: string): User {
-        // export async function registerClientAction(request: Request): Promise<UserEntity | undefined> {
-        //     const result = await getUserFromRequest(request)
-        //     if (!result) return
+        const user = this.repo.getByKey(key)
         
-        //     const { user, uuid } = result
+        if (user.startPeriodDate >= user.endPeriodDate) {
+            throw new UserSubscriptionHasExpiredError()
+        }
+
+        if (new Date((new Date()).toUTCString()) > user.endPeriodDate) {
+            throw new UserSubscriptionHasExpiredError()
+        }
+
+        if (user.isKeyActive) {
+            let howMuchLeft = user.endPeriodDate.getTime() - user.startPeriodDate.getTime()
+            const sameUuidUser = this.getSameUuidUser(user.username, uuid)
+            howMuchLeft /= (60 * 60 * 1000)
+    
+            user.startPeriodDate = new Date((new Date()).toUTCString()) 
+            user.endPeriodDate = new Date(new Date((new Date().getTime() + howMuchLeft * 3600000)).toUTCString())
+
+            user.isKeyActive = true
+            user.uuid = uuid
+            user.impersonates = sameUuidUser
+            
+            this.repo.update(user)
+
+            if (sameUuidUser) {
+                throw new UserImpersonatesError()
+            }
+        }
         
-        //     if (user.isKeyActive) {
-        //         let howMuchLeft = user.endPeriodDate.getTime() - user.startPeriodDate.getTime()
-        //         howMuchLeft /= (60 * 60 * 1000)
-        
-        //         user.startPeriodDate = getUTCDate()
-        //         user.endPeriodDate = afterHours(howMuchLeft)
-        
-        //         let sameUuidUsers = await getSameUuidUsers(request.query.uuid as string)
-        //         sameUuidUsers =  sameUuidUsers.filter(_user => _user.key != user.key)
-        
-        //         await userDB.update(user, {
-        //             startPeriodDate: user.startPeriodDate,
-        //             endPeriodDate: user.endPeriodDate,
-        //             isKeyActive: true,
-        //             uuid: uuid,
-        //             impersonates: sameUuidUsers[0]
-        //         })
-        
-        //     }
-        
-        //     return user
-        // }
-        return this.repo.getByKey(key);
+        return user
+    }
+
+    private getSameUuidUser(username: string, uuid: string): string | undefined {
+        const users = this.repo.all()
+        return users.find(u => u.username !== username && u.uuid === uuid)?.username
     }
 }
