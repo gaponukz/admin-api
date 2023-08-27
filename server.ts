@@ -1,4 +1,4 @@
-import express, { Express, Request, Response } from 'express'
+import express, { Express } from 'express'
 
 import { UserService } from "./src/application/usecases/userService"
 import { PostService } from "./src/application/usecases/postService"
@@ -11,6 +11,8 @@ import { JsonMessageRepository } from "./src/infrastructure/db/jsonMessageRepo"
 import { UserHandler } from './src/infrastructure/controller/handlers/users'
 import { PostHandler } from './src/infrastructure/controller/handlers/posts'
 import { MessageHandler } from './src/infrastructure/controller/handlers/messages'
+import { consoleLogMiddleware } from './src/infrastructure/controller/middlewares/log'
+import { disableCorsMiddleware } from './src/infrastructure/controller/middlewares/auth'
 
 import { TelegramNotifier } from "./src/infrastructure/notifier/telegram"
 import { EnvSettingsExporter } from "./src/infrastructure/settings/env"
@@ -32,6 +34,9 @@ const postsHandler = new PostHandler(postsUsecase)
 const messagesHandler = new MessageHandler(messagesUsecase)
 
 const app: Express = express()
+
+app.use(consoleLogMiddleware)
+app.use(disableCorsMiddleware)
 
 app.get('/get_all', usersHandler.showAll)
 app.post('/get_user', usersHandler.registerClientAction)
