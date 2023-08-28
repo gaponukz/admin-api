@@ -11,20 +11,20 @@ class PostRepositoryMock implements PostRepository {
         this.posts = []
     }
 
-    create(post: Post): void {
+    async create(post: Post): Promise<void> {
         this.posts.push(post)
     }
 
-    update(post: Post): void {
+    async update(post: Post): Promise<void> {
         this.delete(post.id)
         this.create(post)
     }
     
-    delete(id: string): void {
+    async delete(id: string): Promise<void> {
         this.posts.filter(post => post.id !== id)
     }
     
-    getByID(id: string): Post {
+    async getByID(id: string): Promise<Post> {
         const post = this.posts.find(post => post.id === id)
         if (!post) {
             throw new PostNotFoundError()
@@ -33,7 +33,7 @@ class PostRepositoryMock implements PostRepository {
         return post
     }
     
-    all(): Post[] {
+    async all(): Promise<Post[]> {
         return this.posts
     }
 }
@@ -42,20 +42,20 @@ describe('Test post creating', () => {
     const db = new PostRepositoryMock()
     const service = new PostService(db)
 
-    test('Create correct post without errors', () => {
+    test('Create correct post without errors', async () => {
         const expectedPost = new CreatePostDTO("new", "blabla", "http://img")
-        const post = service.create(expectedPost)
+        const post = await service.create(expectedPost)
 
         expect(expectedPost.title).toBe(post.title)
         expect(expectedPost.description).toBe(post.description)
         expect(expectedPost.description).toBe(post.description)
     })
 
-    test('Update post', () => {
-        let p = service.create(new CreatePostDTO("test", "blabla", "http://img"))
+    test('Update post', async () => {
+        let p = await service.create(new CreatePostDTO("test", "blabla", "http://img"))
         let expectedPost = new UpdatePostDTO(p.id, "upd", "some", p.image)
         service.update(expectedPost)
-        const post = service.byID(p.id)
+        const post = await service.byID(p.id)
 
         expect(expectedPost.title).toBe(post.title)
         expect(expectedPost.description).toBe(post.description)

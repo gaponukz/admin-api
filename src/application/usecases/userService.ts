@@ -5,11 +5,11 @@ import { UserSubscriptionHasExpiredError, UserImpersonatesError } from '../../do
 import { createHash } from 'crypto'
 
 export interface IUserService {
-    register(data: CreateUserDTO): User
-    update(data: UpdateUserDTO): void
-    delete(key: string): void
-    registerClientAction(key: string, uuid: string): User
-    all(): User[]
+    register(data: CreateUserDTO): Promise<User>
+    update(data: UpdateUserDTO): Promise<void>
+    delete(key: string): Promise<void>
+    registerClientAction(key: string, uuid: string): Promise<User>
+    all(): Promise<User[]>
 }
 
 export class UserService implements IUserService {
@@ -19,7 +19,7 @@ export class UserService implements IUserService {
         this.repo = repo
     }
 
-    register(data: CreateUserDTO): User {
+    async register(data: CreateUserDTO): Promise<User> {
         if (data.startPreiodDate >= data.endPreiodDate) {
             throw new UserSubscriptionHasExpiredError()
         }
@@ -33,13 +33,13 @@ export class UserService implements IUserService {
             .digest('hex')
         
         const user = new User(data.username, key, data.startPreiodDate, data.endPreiodDate, true, false, undefined, undefined)
-        this.repo.create(user)
+        await this.repo.create(user)
 
         return user
     }
 
-    update(data: UpdateUserDTO): void {
-        const user = this.repo.getByKey(data.key);
+    async update(data: UpdateUserDTO): Promise<void> {
+        const user = await this.repo.getByKey(data.key);
         const updatedUser = {
             ...user,
             ...(data.username && { username: data.username }),
@@ -49,15 +49,15 @@ export class UserService implements IUserService {
             ...(data.isPro !== undefined && { isPro: data.isPro }),
         };
     
-        this.repo.update(updatedUser);
+        await this.repo.update(updatedUser);
     }
 
-    delete(key: string): void {
-        this.repo.delete(this.repo.getByKey(key))
+    async delete(key: string): Promise<void> {
+        await this.repo.delete(await this.repo.getByKey(key))
     }
 
-    registerClientAction(key: string, uuid: string): User {
-        const user = this.repo.getByKey(key)
+    async registerClientAction(key: string, uuid: string): Promise<User> {
+        const user = await this.repo.getByKey(key)
         
         if (user.startPeriodDate >= user.endPeriodDate) {
             throw new UserSubscriptionHasExpiredError()
@@ -69,7 +69,7 @@ export class UserService implements IUserService {
 
         if (user.isKeyActive) {
             let howMuchLeft = user.endPeriodDate.getTime() - user.startPeriodDate.getTime()
-            const sameUuidUser = this.getSameUuidUser(user.username, uuid)
+            const sameUuidUser = await this.getSameUuidUser(user.username, uuid)
             howMuchLeft /= (60 * 60 * 1000)
     
             user.startPeriodDate = new Date((new Date()).toUTCString()) 
@@ -79,7 +79,7 @@ export class UserService implements IUserService {
             user.uuid = uuid
             user.impersonates = sameUuidUser
             
-            this.repo.update(user)
+            await this.repo.update(user)
 
             if (sameUuidUser) {
                 throw new UserImpersonatesError()
@@ -89,12 +89,12 @@ export class UserService implements IUserService {
         return user
     }
 
-    all(): User[] {
-        return this.repo.all()
+    async all(): Promise<User[]> {
+        return await this.repo.all()
     }
 
-    private getSameUuidUser(username: string, uuid: string): string | undefined {
-        const users = this.repo.all()
+    private async getSameUuidUser(username: string, uuid: string): Promise<string | undefined> {
+        const users = await this.repo.all()
         return users.find(u => u.username !== username && u.uuid === uuid)?.username
     }
 }

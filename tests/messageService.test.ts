@@ -10,11 +10,11 @@ class MessageRepositoryMock implements MessageRepository {
         this.messages = []
     }
 
-    create(message: Message): void {
+    async create(message: Message): Promise<void> {
         this.messages.push(message)
     }
 
-    all(): Message[] {
+    async all(): Promise<Message[]> {
         return this.messages
     }
 }
@@ -26,7 +26,7 @@ class NotifierMock implements MessageNotifier {
         this.lastMessage = undefined
     }
 
-    send(message: Message): void {
+    async send(message: Message): Promise<void> {
         this.lastMessage = message
     }
 
@@ -44,11 +44,11 @@ describe('Test message sending', () => {
     const notifier = new NotifierMock()
     const service = new MessageService(db, notifier)
 
-    test('Create correct message without errors', () => {
+    test('Create correct message without errors', async () => {
         const expectedMessage = new CreateMessageDTO("sub", "test@gmail.com", "hi")
-        service.create(expectedMessage)
+        await service.create(expectedMessage)
         const message = notifier.getLastMessage()
-        const dbMessage = service.all().find(m => m.gmail === "test@gmail.com")
+        const dbMessage = (await service.all()).find(m => m.gmail === "test@gmail.com")
         
         expect(dbMessage).not.toBe(undefined)
         expect(expectedMessage.gmail).toBe(message.gmail)
