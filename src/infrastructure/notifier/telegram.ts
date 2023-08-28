@@ -10,12 +10,12 @@ export class TelegramNotifier implements MessageNotifier {
         this.ownerID = ownerID
     }
 
-    send(message: Message): void {
+    async send(message: Message): Promise<void> {
         const telegramApiUrl = "https://api.telegram.org/bot"
         const apiAction = "sendMessage"
         const text = this.formatMessage(message)
 
-        fetch(`${telegramApiUrl}${this.telegramBotToken}/${apiAction}?chat_id=${this.ownerID}}&text=${text}`)
+        await fetch(`${telegramApiUrl}${this.telegramBotToken}/${apiAction}?chat_id=${this.ownerID}}&text=${text}`)
     }
 
     private formatMessage(message: Message): string {

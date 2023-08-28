@@ -9,13 +9,13 @@ export class JsonMessageRepository implements MessageRepository {
         this.filename = filename
     }
 
-    create(message: Message): void {
+    async create(message: Message): Promise<void> {
         const messages = this.getAllMessages()
         messages.push(message)
         fs.writeFileSync(this.filename, JSON.stringify(messages))
     }
 
-    all(): Message[] {
+    async all(): Promise<Message[]> {
         return this.getAllMessages();
     }
 

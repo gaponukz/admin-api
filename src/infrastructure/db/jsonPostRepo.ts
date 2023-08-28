@@ -10,13 +10,13 @@ export class JsonPostRepository implements PostRepository{
         this.filename = filename
     }
 
-    create(post: Post): void {
+    async create(post: Post): Promise<void> {
         const posts = this.getAllPosts()
         posts.push(post)
         fs.writeFileSync(this.filename, JSON.stringify(posts))
     }
 
-    update(post: Post): void {
+    async update(post: Post): Promise<void> {
         const posts = this.getAllPosts()
         const index = posts.findIndex(p => p.id === post.id)
         if (index !== -1) {
@@ -25,13 +25,13 @@ export class JsonPostRepository implements PostRepository{
         }
     }
 
-    delete(id: string): void {
+    async delete(id: string): Promise<void> {
         const posts = this.getAllPosts()
         const updatedPosts = posts.filter(p => p.id !== id)
         fs.writeFileSync(this.filename, JSON.stringify(updatedPosts))
     }
 
-    getByID(id: string): Post {
+    async getByID(id: string): Promise<Post> {
         const posts = this.getAllPosts();
         const post = posts.find(post => post.id === id)
 
@@ -42,7 +42,7 @@ export class JsonPostRepository implements PostRepository{
         return post
     }
 
-    all(): Post[] {
+    async all(): Promise<Post[]> {
         return this.getAllPosts();
     }
 
