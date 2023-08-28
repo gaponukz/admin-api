@@ -5,7 +5,7 @@ import { UserNotFoundError } from '../../domain/errors'
 import { UserDocument } from './mongodb/documents'
 import { UserSchema } from './mongodb/schemas'
 
-export class MongoUserRepository {
+export class MongoUserRepository implements UserRepository{
     private mongoUser: Model<UserDocument>
 
     constructor() {

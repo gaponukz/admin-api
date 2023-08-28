@@ -4,7 +4,7 @@ import { MessageRepository } from '../../domain/repositories'
 import { MessageDocument } from './mongodb/documents'
 import { MessageSchema } from './mongodb/schemas'
 
-export class MongoMessageRepository {
+export class MongoMessageRepository implements MessageRepository {
     private mongoMessage: Model<MessageDocument>
 
     constructor() {

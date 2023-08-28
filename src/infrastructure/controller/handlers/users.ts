@@ -10,7 +10,7 @@ export class UserHandler {
         this.service = service
     }
 
-    registerUser (request: Request, response: Response) {
+    async registerUser (request: Request, response: Response) {
         if (!(request.body.username && request.body.startPreiodDate && request.body.endPreiodDate)) {
             return response.status(400).send("Missing username or dates")
         }
@@ -21,16 +21,16 @@ export class UserHandler {
             new Date(request.body.endPreiodDate)
         )
 
-        response.send(this.service.register(dto))
+        response.send(await this.service.register(dto))
     }
 
-    updateUserInfo (request: Request, response: Response) {
+    async updateUserInfo (request: Request, response: Response) {
         if (!request.body.key) {
             return response.status(400).send("Missing key")
         }
 
         try {
-            response.send(this.service.update(request.body))
+            response.send(await this.service.update(request.body))
 
         } catch (error) {
             if (error instanceof UserNotFoundError) {
@@ -42,13 +42,13 @@ export class UserHandler {
         }
     }
 
-    deleteUser (request: Request, response: Response) {
+    async deleteUser (request: Request, response: Response) {
         if (!request.body.key) {
             return response.status(400).send("Missing key")
         }
 
         try {
-            response.send(this.service.delete(request.body.key))
+            response.send(await this.service.delete(request.body.key))
 
         } catch (error) {
             if (error instanceof UserNotFoundError) {
@@ -60,13 +60,13 @@ export class UserHandler {
         }
     }
 
-    registerClientAction (request: Request, response: Response) {
+    async registerClientAction (request: Request, response: Response) {
         if (!(request.body.key && request.body.uuid)) {
             return response.status(400).send("Missing key or uuid")
         }
 
         try {
-            const user = this.service.registerClientAction(request.body.key, request.body.key)
+            const user = await this.service.registerClientAction(request.body.key, request.body.key)
             response.send(user)
 
         } catch (error) {
@@ -85,7 +85,7 @@ export class UserHandler {
         }
     }
 
-    showAll (request: Request, response: Response) {
-        response.send(this.service.all())
+    async showAll (request: Request, response: Response) {
+        response.send(await this.service.all())
     }
 }
