@@ -3,12 +3,12 @@ import { CreateMessageDTO } from '../dto'
 import { MessageRepository } from '../../domain/repositories'
 
 export interface MessageNotifier {
-    send(message: Message): void
+    send(message: Message): Promise<void>
 }
 
 export interface IMessageService {
-    create(data: CreateMessageDTO): void
-    all(): Message[]
+    create(data: CreateMessageDTO): Promise<void>
+    all(): Promise<Message[]>
 }
 
 export class MessageService implements IMessageService {
@@ -20,15 +20,15 @@ export class MessageService implements IMessageService {
         this.notifier = notifier
     }
 
-    create(data: CreateMessageDTO): void {
+    async create(data: CreateMessageDTO): Promise<void> {
         const date = new Date((new Date()).toUTCString()) 
         const message = new Message(data.subject, data.gmail, data.message, date) 
 
-        this.repo.create(message)
-        this.notifier.send(message)
+        await this.repo.create(message)
+        await this.notifier.send(message)
     }
 
-    all(): Message[] {
-        return this.repo.all()
+    async all(): Promise<Message[]> {
+        return await this.repo.all()
     }
 }

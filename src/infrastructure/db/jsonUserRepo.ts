@@ -10,13 +10,13 @@ export class JsonUserRepository implements UserRepository {
         this.filename = filename
     }
 
-    create(user: User): void {
+    async create(user: User): Promise<void> {
         const users = this.getAllUsers()
         users.push(user)
         fs.writeFileSync(this.filename, JSON.stringify(users))
     }
 
-    getByKey(key: string): User {
+    async getByKey(key: string): Promise<User> {
         const users = this.getAllUsers()
         const user =  users.find(user => user.key === key)
 
@@ -27,7 +27,7 @@ export class JsonUserRepository implements UserRepository {
         return user
     }
 
-    update(user: User): void {
+    async update(user: User): Promise<void> {
         const users = this.getAllUsers()
         const index = users.findIndex(u => u.key === user.key)
         if (index !== -1) {
@@ -36,13 +36,13 @@ export class JsonUserRepository implements UserRepository {
         }
     }
 
-    delete(user: User): void {
+    async delete(user: User): Promise<void> {
         const users = this.getAllUsers()
         const updatedUsers = users.filter(u => u.key !== user.key)
         fs.writeFileSync(this.filename, JSON.stringify(updatedUsers))
     }
 
-    all(): User[] {
+    async all(): Promise<User[]> {
         return this.getAllUsers()
     }
 

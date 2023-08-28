@@ -11,11 +11,11 @@ class UserRepositoryMock implements UserRepository {
         this.users = []
     }
 
-    create(user: User): void {
+    async create(user: User): Promise<void> {
         this.users.push(user)
     }
 
-    getByKey(key: string): User {
+    async getByKey(key: string): Promise<User> {
         const user = this.users.find(u => u.key === key)
         if (!user) {
             throw new UserNotFoundError()
@@ -24,16 +24,16 @@ class UserRepositoryMock implements UserRepository {
         return user
     }
 
-    update(user: User): void {
+    async update(user: User): Promise<void> {
         this.users = this.users.filter(u => u.key !== user.key)
         this.users.push(user)
     }
 
-    delete(user: User): void {
+    async delete(user: User): Promise<void> {
         this.users = this.users.filter(u => u.key !== user.key)
     }
 
-    all(): User[] {
+    async all(): Promise<User[]> {
         return this.users
     }
 }
@@ -42,13 +42,13 @@ describe('Test user registration', () => {
     const db = new UserRepositoryMock()
     const service = new UserService(db)
 
-    test('Create correct user without errors', () => {
+    test('Create correct user without errors', async () => {
         const startPeriodDate = new Date((new Date()).toUTCString())
         const endPeriodDate = new Date((new Date()).toUTCString())
         endPeriodDate.setDate(endPeriodDate.getDate() + 1)
 
         const newUser = new CreateUserDTO("test1", startPeriodDate, endPeriodDate)
-        const user = service.register(newUser)
+        const user = await service.register(newUser)
 
         expect(user.username).toBe(newUser.username)
         expect(user.startPeriodDate).toBe(newUser.startPreiodDate)
@@ -58,7 +58,7 @@ describe('Test user registration', () => {
         expect(user.isKeyActive).toBe(true)
         expect(user.impersonates).toBe(undefined)
 
-        const userFromDb = db.getByKey(user.key)
+        const userFromDb = await db.getByKey(user.key)
         expect(user.username).toBe(userFromDb.username)
     })
 
@@ -67,9 +67,9 @@ describe('Test user registration', () => {
         const endPeriodDate = new Date((new Date()).toUTCString())
         startPeriodDate.setDate(startPeriodDate.getDate() + 1)
 
-        expect(() => {
-            service.register(new CreateUserDTO("test1", startPeriodDate, endPeriodDate))
-        }).toThrow(UserSubscriptionHasExpiredError)
+        expect(async() => {
+            await service.register(new CreateUserDTO("test1", startPeriodDate, endPeriodDate))
+        }).rejects.toThrow(UserSubscriptionHasExpiredError)
     })
 
     test('We should not register expired keys', () => {
@@ -78,9 +78,9 @@ describe('Test user registration', () => {
         startPeriodDate.setDate(startPeriodDate.getDate() - 1)
         endPeriodDate.setDate(endPeriodDate.getDate() - 2)
 
-        expect(() => {
-            service.register(new CreateUserDTO("test1", startPeriodDate, endPeriodDate))
-        }).toThrow(UserSubscriptionHasExpiredError)
+        expect(async () => {
+            await service.register(new CreateUserDTO("test1", startPeriodDate, endPeriodDate))
+        }).rejects.toThrow(UserSubscriptionHasExpiredError)
     })
 })
 
@@ -92,19 +92,17 @@ describe('Test delete user', () => {
     endPeriodDate.setDate(endPeriodDate.getDate() + 1)
 
     const newUser = new CreateUserDTO("test1", startPeriodDate, endPeriodDate)
-    const user = service.register(newUser)
 
-    test('Can not delete non existent user', () => {
-        expect(() => {
-            service.delete(user.key+"blabla")
-        }).toThrow(UserNotFoundError)
-    })
+    test('Delete user without errors', async () => {
+        const user = await service.register(newUser)
+        expect(async () => {
+            await service.delete(user.key+"blabla")
+        }).rejects.toThrow(UserNotFoundError)
 
-    test('Delete user without errors', () => {
-        service.delete(user.key)
-        expect(() => {
-            db.getByKey(user.key)
-        }).toThrow(UserNotFoundError)
+        await service.delete(user.key)
+        expect(async () => {
+            await db.getByKey(user.key)
+        }).rejects.toThrow(UserNotFoundError)
     })
 })
 
@@ -116,31 +114,28 @@ describe('Test update user info', () => {
     const endPeriodDate = new Date((new Date()).toUTCString())
     endPeriodDate.setDate(endPeriodDate.getDate() + 1)
 
-    const newUser = new CreateUserDTO("test1", startPeriodDate, endPeriodDate)
-    const user = service.register(newUser)
+    test('Correctly update user', async () => {
+        const user = await service.register(new CreateUserDTO("test1", startPeriodDate, endPeriodDate))
 
-    test('Can not update non existent user', () => {
-        expect(() => {
-            service.update(new UpdateUserDTO(user.key+"blabla"))
-        }).toThrow(UserNotFoundError)
-    })
+        expect(async () => {
+            await service.update(new UpdateUserDTO(user.key+"blabla"))
+        }).rejects.toThrow(UserNotFoundError)
 
-    test('Correctly update user', () => {
-        service.update({key: user.key, username: "new_username"})
+        await service.update({key: user.key, username: "new_username"})
         
-        let newUser = db.getByKey(user.key)
+        let newUser = await db.getByKey(user.key)
         expect(newUser.username).toBe("new_username")
         expect(newUser.endPeriodDate).toBe(user.endPeriodDate)
         expect(newUser.startPeriodDate).toBe(user.startPeriodDate)
         expect(newUser.isKeyActive).toBe(user.isKeyActive)
         expect(newUser.isPro).toBe(user.isPro)
 
-        service.update({key: user.key, isKeyActive: false})
-        newUser = db.getByKey(user.key)
+        await service.update({key: user.key, isKeyActive: false})
+        newUser = await db.getByKey(user.key)
         expect(newUser.isKeyActive).toBe(false)
 
-        service.update({key: user.key, isPro: true})
-        newUser = db.getByKey(user.key)
+        await service.update({key: user.key, isPro: true})
+        newUser = await db.getByKey(user.key)
         expect(newUser.isPro).toBe(true)
     })
 })
@@ -152,41 +147,43 @@ describe('Test register client action', () => {
     const endPeriodDate = new Date((new Date()).toUTCString())
     endPeriodDate.setDate(endPeriodDate.getDate() + 1)
 
-    const newUser = new CreateUserDTO("test1", startPeriodDate, endPeriodDate)
-    const user = service.register(newUser)
-
-    test('Detect expired key', () => {
+    test('Detect expired key', async () => {
+        const newUser = new CreateUserDTO("test1", startPeriodDate, endPeriodDate)
+        const user = await service.register(newUser)
         user.startPeriodDate = new Date((new Date()).toUTCString())
         user.endPeriodDate = new Date((new Date()).toUTCString())
         user.startPeriodDate.setDate(user.startPeriodDate.getDate() - 2)
         user.endPeriodDate.setDate(user.endPeriodDate.getDate() - 1)
-        db.update(user)
+        await db.update(user)
 
-        expect(() => {
-            service.registerClientAction(user.key, "123")
-        }).toThrow(UserSubscriptionHasExpiredError)
+        expect(async () => {
+            await service.registerClientAction(user.key, "123")
+        }).rejects.toThrow(UserSubscriptionHasExpiredError)
     })
 
-    test('Detect same uuid', () => {
+    test('Detect same uuid', async () => {
+        const newUser = new CreateUserDTO("test1", startPeriodDate, endPeriodDate)
+        const user = await service.register(newUser)
+
         user.startPeriodDate.setDate(user.startPeriodDate.getDate() + 1)
         user.endPeriodDate.setDate(user.endPeriodDate.getDate() + 2)
-        db.update(user)
-        db.create(new User("sus", "qwe", new Date(), new Date(), true, false, "123", undefined))
+        await db.update(user)
+        await db.create(new User("sus", "qwe", new Date(), new Date(), true, false, "123", undefined))
 
-        expect(() => {
-            service.registerClientAction(user.key, "123")
-        }).toThrow(UserImpersonatesError)
+        expect(async () => {
+            await service.registerClientAction(user.key, "123")
+        }).rejects.toThrow(UserImpersonatesError)
     })
 
-    test('When key was not active', () => {
+    test('When key was not active', async () => {
         const db = new UserRepositoryMock()
         const service = new UserService(db)
         const startPeriodDate = new Date((new Date()).toUTCString())
         const endPeriodDate = new Date((new Date()).toUTCString())
         endPeriodDate.setDate(endPeriodDate.getDate() + 1)
 
-        const expectedUser = service.register(new CreateUserDTO("test1", startPeriodDate, endPeriodDate))
-        const user = service.registerClientAction(expectedUser.key, "123")
+        const expectedUser = await service.register(new CreateUserDTO("test1", startPeriodDate, endPeriodDate))
+        const user = await service.registerClientAction(expectedUser.key, "123")
 
         expect(user.isKeyActive).toBe(true)
         expect(user.uuid).toBe("123")
@@ -196,18 +193,18 @@ describe('Test register client action', () => {
         expect(user.startPeriodDate.getTime() - user.endPeriodDate.getTime()).toBe(expectedUser.startPeriodDate.getTime() - user.endPeriodDate.getTime())
     })
 
-    test('When key was already active', () => {
+    test('When key was already active', async () => {
         const db = new UserRepositoryMock()
         const service = new UserService(db)
         const startPeriodDate = new Date((new Date()).toUTCString())
         const endPeriodDate = new Date((new Date()).toUTCString())
         endPeriodDate.setDate(endPeriodDate.getDate() + 1)
 
-        const expectedUser = service.register(new CreateUserDTO("test1", startPeriodDate, endPeriodDate))
+        const expectedUser = await service.register(new CreateUserDTO("test1", startPeriodDate, endPeriodDate))
         expectedUser.isKeyActive = true
-        db.update(expectedUser)
+        await db.update(expectedUser)
 
-        const user = service.registerClientAction(expectedUser.key, "123")
+        const user = await service.registerClientAction(expectedUser.key, "123")
         expect(user.isKeyActive).toBe(true)
         expect(user.uuid).toBe("123")
 
