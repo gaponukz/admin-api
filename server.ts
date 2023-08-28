@@ -18,7 +18,7 @@ import { disableCorsMiddleware } from './src/infrastructure/controller/middlewar
 import { TelegramNotifier } from "./src/infrastructure/notifier/telegram"
 import { EnvSettingsExporter } from "./src/infrastructure/settings/env"
 
-const settings = new EnvSettingsExporter().load()
+const settings = new EnvSettingsExporter(true).load()
 
 const usersDB = new MongoUserRepository()
 const postsDB = new MongoPostRepository()
@@ -41,17 +41,17 @@ mongoose.connect(settings.dbUri, { useNewUrlParser: true } as any)
 app.use(consoleLogMiddleware)
 app.use(disableCorsMiddleware)
 
-app.get('/get_all', usersHandler.showAll)
-app.post('/get_user', usersHandler.registerClientAction)
-app.post('/edit_user', usersHandler.updateUserInfo)
-app.delete('/remove_user', usersHandler.deleteUser)
+app.get('/get_all', usersHandler.showAll.bind(usersHandler))
+app.post('/get_user', usersHandler.registerClientAction.bind(usersHandler))
+app.post('/edit_user', usersHandler.updateUserInfo.bind(usersHandler))
+app.delete('/remove_user', usersHandler.deleteUser.bind(usersHandler))
 
-app.get('/get_posts', postsHandler.showAllPosts)
-app.post('/add_post', postsHandler.publicNewPost)
-app.delete('/remove_post', postsHandler.deletePost)
+app.get('/get_posts', postsHandler.showAllPosts.bind(postsHandler))
+app.post('/add_post', postsHandler.publicNewPost.bind(postsHandler))
+app.delete('/remove_post', postsHandler.deletePost.bind(postsHandler))
 
-app.post('/send_message', messagesHandler.sendMessage)
-app.get('/get_messages', messagesHandler.showAllMessages)
+app.post('/send_message', messagesHandler.sendMessage.bind(messagesHandler))
+app.get('/get_messages', messagesHandler.showAllMessages.bind(messagesHandler))
 
 app.listen(settings.port, () => {
     console.log(`⚡️[server]: Server is running at http://localhost:${settings.port}`)

@@ -10,13 +10,13 @@ export class PostHandler {
         this.service = service
     }
 
-    publicNewPost (request: Request, response: Response) {
+    async publicNewPost (request: Request, response: Response) {
         if (!(request.body.title && request.body.description && request.body.image)) {
             return response.status(400).send("Missing title or image or description")
         }
 
         response.send(
-            this.service.create(new CreatePostDTO(
+            await this.service.create(new CreatePostDTO(
                 request.body.title,
                 request.body.description,
                 request.body.image
@@ -24,13 +24,13 @@ export class PostHandler {
         )
     }
 
-    updatePostContent (request: Request, response: Response) {
+    async updatePostContent (request: Request, response: Response) {
         if (!(request.body.id && request.body.title && request.body.description && request.body.image)) {
             return response.status(400).send("Missing some fields")
         }
 
         try {
-            this.service.update(new UpdatePostDTO(
+            await this.service.update(new UpdatePostDTO(
                 request.body.id,
                 request.body.title,
                 request.body.description,
@@ -48,17 +48,17 @@ export class PostHandler {
         }
     }
 
-    showAllPosts (request: Request, response: Response) {
-        response.send(this.service.all())
+    async showAllPosts (request: Request, response: Response) {
+        response.send(await this.service.all())
     }
 
-    deletePost (request: Request, response: Response) {
+    async deletePost (request: Request, response: Response) {
         if (!request.body.id) {
             return response.status(400).send("Missing post id")
         }
 
         try {
-            response.send(this.service.delete(request.body.id))
+            response.send(await this.service.delete(request.body.id))
 
         } catch (error) {
             if (error instanceof PostNotFoundError) {
