@@ -1,12 +1,13 @@
+import mongoose from 'mongoose'
 import express, { Express } from 'express'
 
 import { UserService } from "./src/application/usecases/userService"
 import { PostService } from "./src/application/usecases/postService"
 import { MessageService } from "./src/application/usecases/messageService"
 
-import { JsonUserRepository } from "./src/infrastructure/db/jsonUserRepo"
-import { JsonPostRepository } from "./src/infrastructure/db/jsonPostRepo"
-import { JsonMessageRepository } from "./src/infrastructure/db/jsonMessageRepo"
+import { MongoUserRepository } from "./src/infrastructure/db/mongoUserRepo"
+import { MongoPostRepository } from "./src/infrastructure/db/mongoPostRepo"
+import { MongoMessageRepository } from "./src/infrastructure/db/mongoMessageRepo"
 
 import { UserHandler } from './src/infrastructure/controller/handlers/users'
 import { PostHandler } from './src/infrastructure/controller/handlers/posts'
@@ -19,9 +20,9 @@ import { EnvSettingsExporter } from "./src/infrastructure/settings/env"
 
 const settings = new EnvSettingsExporter().load()
 
-const usersDB = new JsonUserRepository("users.json")
-const postsDB = new JsonPostRepository("posts.json")
-const messagesDB = new JsonMessageRepository("messages.json")
+const usersDB = new MongoUserRepository()
+const postsDB = new MongoPostRepository()
+const messagesDB = new MongoMessageRepository()
 
 const notifier = new TelegramNotifier(settings.telegramBotToken, settings.ownerID)
 
@@ -34,6 +35,8 @@ const postsHandler = new PostHandler(postsUsecase)
 const messagesHandler = new MessageHandler(messagesUsecase)
 
 const app: Express = express()
+
+mongoose.connect(settings.dbUri, { useNewUrlParser: true } as any)
 
 app.use(consoleLogMiddleware)
 app.use(disableCorsMiddleware)

@@ -4,11 +4,13 @@ class Settings {
     telegramBotToken: string
     ownerID: string
     port: number
+    dbUri: string
 
-    constructor(telegramBotToken: string, ownerID: string, port: number) {
+    constructor(telegramBotToken: string, ownerID: string, port: number, dbUri: string) {
         this.telegramBotToken = telegramBotToken
         this.ownerID = ownerID
         this.port = port
+        this.dbUri = dbUri
     }
 }
 
@@ -22,7 +24,8 @@ export class EnvSettingsExporter {
         return new Settings(
             process.env.telegramBotToken as string,
             process.env.ownerID as string,
-            parseInt(process.env.PORT || "8080")
+            parseInt(process.env.PORT || "8080"),
+            process.env.dbUri as string
         )
     }
 }

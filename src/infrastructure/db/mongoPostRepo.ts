@@ -5,7 +5,7 @@ import { PostNotFoundError } from '../../domain/errors'
 import { PostDocument } from './mongodb/documents'
 import { PostSchema } from './mongodb/schemas'
 
-export class MongoPostRepository {
+export class MongoPostRepository implements PostRepository{
     private mongoPost: Model<PostDocument>
 
     constructor() {
